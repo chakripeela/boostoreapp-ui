@@ -96,7 +96,7 @@ az role assignment create \
   --role AcrPush \
   --scope /subscriptions/{subscription-id}/resourceGroups/{resource-group}
 
-# Add AcrPull role for pulling images  
+# Add AcrPull role for pulling images
 az role assignment create \
   --assignee <client-id> \
   --role AcrPull \

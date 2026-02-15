@@ -1,40 +1,39 @@
-# Build stage
-FROM node:18-lts AS builder
+# Multi-stage build for React with Vite
+FROM node:18 as builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json ./
+# Copy dependency files
+COPY package*.json ./
 
-# Install dependencies (including devDependencies needed for Vite build)
-RUN npm install
+# Install dependencies
+RUN npm ci
 
-# Copy the rest of the application
+# Copy application code
 COPY . .
 
-# Build the application with Vite
+# Build the React app with Vite
 RUN npm run build
 
-# Production stage - serve with http-server
-FROM node:18-lts
+# Production stage - serve with node http-server
+FROM node:18-slim
 
 WORKDIR /app
 
-# Install http-server globally
+# Install http-server
 RUN npm install -g http-server
 
-# Copy only the built dist folder from builder
+# Copy built app from builder
 COPY --from=builder /app/dist ./dist
 
-# Expose port 80 (required for Azure App Service)
+# Expose port 80
 EXPOSE 80
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD node -e "require('http').get('http://localhost:80/', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})" || exit 1
 
-# Start http-server on port 80 (App Service expects this)
-# Using absolute path to ensure http-server is found
-CMD ["/usr/local/bin/http-server", "dist", "-p", "80", "-c-1"]
+# Start server
+CMD ["http-server", "dist", "-p", "80"]
 
 

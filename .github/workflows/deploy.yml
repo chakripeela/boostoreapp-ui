@@ -2,7 +2,6 @@ name: Build and Deploy to Azure App Service
 
 on:
   workflow_dispatch:
-    description: "Manual deployment to Azure App Service"
 
 env:
   REGISTRY_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
@@ -23,7 +22,7 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Build and push Docker image to ACR
+      - name: Build and push Docker image
         run: |
           az acr build \
             --registry ${{ env.REGISTRY_LOGIN_SERVER }} \
@@ -31,34 +30,13 @@ jobs:
             --image ${{ env.IMAGE_NAME }}:${{ github.sha }} \
             .
 
-      - name: Verify image in ACR
+      - name: Deploy container to App Service
         run: |
-          REGISTRY_NAME=$(echo ${{ env.REGISTRY_LOGIN_SERVER }} | cut -d. -f1)
-          echo "Checking images in ACR registry: $REGISTRY_NAME"
-          az acr repository list --name $REGISTRY_NAME || true
-
-          echo ""
-          echo "Recent tags for ${{ env.IMAGE_NAME }}:"
-          az acr repository show-tags --name $REGISTRY_NAME --repository ${{ env.IMAGE_NAME }} || echo "Image not found"
-
-      - name: Deploy to App Service
-        run: |
-          # Set container image
           az webapp config container set \
             --name ${{ env.APPSERVICE_NAME }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --docker-custom-image-name ${{ env.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
             --docker-registry-server-url https://${{ env.REGISTRY_LOGIN_SERVER }}
-
-          # Enable continuous deployment
-          az webapp deployment container config \
-            --name ${{ env.APPSERVICE_NAME }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --enable-cd true || true
-          echo "Current container configuration:"
-          az webapp config container show \
-            --name ${{ env.APPSERVICE_NAME }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} || true
 
       - name: Restart App Service
         run: |
@@ -66,40 +44,6 @@ jobs:
             --name ${{ env.APPSERVICE_NAME }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
 
-      - name: Wait for App Service to start
-        run: sleep 45
-
-      - name: Check App Service status
+      - name: Display app URL
         run: |
-          echo "App Service details:"
-          az webapp show \
-            --name ${{ env.APPSERVICE_NAME }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --query "{name:name, state:state, runtimeVersion:runtimeVersion}"
-
-          echo ""
-          echo "Container configuration:"
-          az webapp config container show \
-            --name ${{ env.APPSERVICE_NAME }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} || echo "No container config found"
-
-      - name: Stream App Service logs
-        run: |
-          echo "Streaming logs from App Service (last 50 lines)..."
-          az webapp log tail \
-            --name ${{ env.APPSERVICE_NAME }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-            --max-lines 50 || true
-
-      - name: Verify Deployment
-        run: |
-          echo "✅ Application deployed successfully to Azure App Service!"
-          echo "App Service: ${{ env.APPSERVICE_NAME }}"
-          echo "URL: https://${{ env.APPSERVICE_NAME }}.azurewebsites.net"
-          echo "=========================="
-          echo "Container is running on port 80"
-          echo "If you see a 503 error:"
-          echo "1. Check logs: az webapp log stream --name ${{ env.APPSERVICE_NAME }} --resource-group ${{ env.AZURE_RESOURCE_GROUP }}"
-          echo "2. Wait 2-3 minutes for container to fully initialize"
-          echo "3. Hard refresh browser (Ctrl+Shift+R)"
-          echo "=========================="
+          echo "✅ Deployed to: https://${{ env.APPSERVICE_NAME }}.azurewebsites.net"

@@ -1,0 +1,76 @@
+name: Deploy to Azure Container Registry and App Service
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+  REGISTRY_USERNAME: ${{ secrets.ACR_USERNAME }}
+  REGISTRY_PASSWORD: ${{ secrets.ACR_PASSWORD }}
+  IMAGE_NAME: bookstore-app
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  APPSERVICE_NAME: ${{ secrets.APPSERVICE_NAME }}
+  AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Azure Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY_LOGIN_SERVER }}
+          username: ${{ env.REGISTRY_USERNAME }}
+          password: ${{ env.REGISTRY_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ env.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+
+  deploy-to-appservice:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.APPSERVICE_NAME }}
+          images: ${{ env.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          registryUrl: https://${{ env.REGISTRY_LOGIN_SERVER }}
+          registryUsername: ${{ env.REGISTRY_USERNAME }}
+          registryPassword: ${{ env.REGISTRY_PASSWORD }}
+
+      - name: Verify Deployment
+        run: |
+          echo "Application deployed successfully to App Service!"
+          echo "App Service: ${{ env.APPSERVICE_NAME }}"
+          echo "URL: https://${{ env.APPSERVICE_NAME }}.azurewebsites.net"

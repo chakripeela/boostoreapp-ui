@@ -1,0 +1,130 @@
+.cart-section {
+  background-color: white;
+  border-radius: 8px;
+  padding: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cart-section h2 {
+  font-size: 28px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.empty-cart {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-cart h2 {
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.empty-cart p {
+  color: #999;
+  font-size: 16px;
+}
+
+.cart-container {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 30px;
+}
+
+.cart-items {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.cart-summary {
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  height: fit-content;
+  position: sticky;
+  top: 100px;
+}
+
+.cart-summary h3 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #666;
+}
+
+.summary-row.total {
+  border-top: 2px solid #e0e0e0;
+  padding-top: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.checkout-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: all 0.3s ease;
+}
+
+.checkout-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.clear-cart-btn {
+  width: 100%;
+  background-color: #f5f5f5;
+  color: #666;
+  border: 1px solid #e0e0e0;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.3s ease;
+}
+
+.clear-cart-btn:hover {
+  background-color: #ff6b6b;
+  color: white;
+  border-color: #ff6b6b;
+}
+
+@media (max-width: 1024px) {
+  .cart-container {
+    grid-template-columns: 1fr;
+  }
+
+  .cart-summary {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .cart-section {
+    padding: 20px;
+  }
+
+  .cart-section h2 {
+    font-size: 24px;
+  }
+}

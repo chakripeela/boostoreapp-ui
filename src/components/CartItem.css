@@ -1,0 +1,138 @@
+.cart-item {
+  display: grid;
+  grid-template-columns: 60px 1fr auto auto auto;
+  gap: 15px;
+  align-items: center;
+  padding: 15px;
+  background-color: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.cart-item:hover {
+  background-color: #f5f5f5;
+  border-color: #667eea;
+}
+
+.cart-item-image {
+  font-size: 40px;
+  text-align: center;
+  background-color: white;
+  border-radius: 4px;
+  padding: 10px;
+}
+
+.cart-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cart-item-info h4 {
+  font-size: 16px;
+  color: #333;
+  margin: 0;
+}
+
+.cart-item-info p {
+  font-size: 12px;
+  color: #999;
+  margin: 0;
+}
+
+.item-price {
+  font-size: 14px;
+  font-weight: 600;
+  color: #667eea;
+}
+
+.cart-item-quantity {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background-color: white;
+}
+
+.cart-item-quantity button {
+  background-color: transparent;
+  border: none;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #667eea;
+  transition: all 0.2s ease;
+}
+
+.cart-item-quantity button:hover {
+  background-color: #f0f0f0;
+}
+
+.cart-item-quantity input {
+  border: none;
+  width: 50px;
+  height: 28px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 4px 8px;
+  color: #333;
+}
+
+.cart-item-quantity input:focus {
+  outline: none;
+  background-color: #f9f9f9;
+}
+
+.cart-item-total {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  min-width: 70px;
+  text-align: right;
+}
+
+.remove-btn {
+  background-color: #ff6b6b;
+  color: white;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.remove-btn:hover {
+  background-color: #ff5252;
+  transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+  .cart-item {
+    grid-template-columns: 50px 1fr;
+    gap: 10px;
+  }
+
+  .cart-item-info {
+    grid-column: 1 / -1;
+  }
+
+  .cart-item-quantity {
+    order: 3;
+  }
+
+  .cart-item-total {
+    order: 4;
+  }
+
+  .remove-btn {
+    order: 5;
+  }
+}

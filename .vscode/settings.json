@@ -1,0 +1,5 @@
+{
+  "appService.zipIgnorePattern": ["node_modules{,/**}", ".vscode{,/**}"],
+  "appService.defaultWebAppToDeploy": "/subscriptions/3cf69445-3e4c-471d-a025-bd6114caeb17/resourceGroups/rg-bookstore-app-centralus/providers/Microsoft.Web/sites/bookstore-app-ui",
+  "appService.deploySubpath": "."
+}

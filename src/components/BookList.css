@@ -1,0 +1,38 @@
+.book-list-section {
+  background-color: white;
+  border-radius: 8px;
+  padding: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.book-list-header {
+  margin-bottom: 30px;
+}
+
+.book-list-header h2 {
+  font-size: 28px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.book-count {
+  color: #666;
+  font-size: 14px;
+}
+
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .book-list-section {
+    padding: 20px;
+  }
+
+  .book-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+  }
+}

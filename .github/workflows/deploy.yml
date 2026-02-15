@@ -42,12 +42,12 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy to App Service
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: ${{ env.APPSERVICE_NAME }}
-          package: ./deploy.zip
-          clean: true
+      - name: Deploy to App Service using CLI
+        run: |
+          az webapp deployment source config-zip \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.APPSERVICE_NAME }} \
+            --src ./deploy.zip
 
       - name: Restart App Service
         run: |
@@ -55,10 +55,18 @@ jobs:
             --name ${{ env.APPSERVICE_NAME }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
 
+      - name: Wait for App Service to start
+        run: sleep 30
+
       - name: Verify Deployment
         run: |
           echo "✅ Application deployed successfully to App Service!"
           echo "App Service: ${{ env.APPSERVICE_NAME }}"
           echo "URL: https://${{ env.APPSERVICE_NAME }}.azurewebsites.net"
-          echo "Note: May take 30-60 seconds to fully load"
-          echo "URL: https://${{ env.APPSERVICE_NAME }}.azurewebsites.net"
+          echo "=========================="
+          echo "If blank page appears:"
+          echo "1. Wait 1-2 minutes for App Service to fully start"
+          echo "2. Hard refresh browser (Ctrl+Shift+Delete or Cmd+Shift+Delete)"
+          echo "3. Check App Service logs:"
+          echo "   az webapp log tail --name ${{ env.APPSERVICE_NAME }} --resource-group ${{ env.AZURE_RESOURCE_GROUP }}"
+          echo "=========================="

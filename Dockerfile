@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine AS builder
+FROM node:18-lts AS builder
 
 WORKDIR /app
 
@@ -16,11 +16,11 @@ COPY . .
 RUN npm run build
 
 # Production stage - serve with http-server
-FROM node:18-alpine
+FROM node:18-lts
 
 WORKDIR /app
 
-# Install http-server from npm
+# Install http-server globally
 RUN npm install -g http-server
 
 # Copy only the built dist folder from builder
@@ -30,9 +30,11 @@ COPY --from=builder /app/dist ./dist
 EXPOSE 80
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost:80/ || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:80/', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})" || exit 1
 
 # Start http-server on port 80 (App Service expects this)
-CMD ["http-server", "dist", "-p", "80", "-c-1"]
+# Using absolute path to ensure http-server is found
+CMD ["/usr/local/bin/http-server", "dist", "-p", "80", "-c-1"]
+
 

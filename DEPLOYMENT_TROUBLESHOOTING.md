@@ -21,36 +21,43 @@ A `web.config` file has been created in the `public` folder that:
 ## Files Created/Modified
 
 ### 1. `public/web.config` (NEW)
+
 - IIS configuration file (only used when deploying to Windows-based App Service)
 - Automatically copied to `dist/` folder during build
 - Configures URL rewriting and compression
 
 ### 2. Vite Configuration
+
 - Already configured to copy `public/` folder to `dist/`
 - No changes needed
 
 ## Steps to Deploy
 
 ### 1. Rebuild Locally (to test)
+
 ```bash
 npm run build
 ```
 
 You should see `web.config` in the `dist/` folder:
+
 ```bash
 ls dist/
 # Should show: index.html, assets/, web.config
 ```
 
 ### 2. Trigger Workflow Again
+
 - Go to GitHub → Actions
 - Run **Deploy to Azure App Service** workflow manually
 - Wait for completion
 
 ### 3. Verify on Browser
+
 Access your app: `https://{appservice-name}.azurewebsites.net`
 
 You should now see:
+
 - ✅ The bookstore homepage with books displayed
 - ✅ Shopping cart functionality working
 - ✅ No 404 errors
@@ -110,12 +117,12 @@ You should see the full React app with working navigation.
 
 ## What Changed
 
-| Step | Before | After |
-|------|--------|-------|
-| **SPA Routing** | ❌ 404 errors on page refresh | ✅ Works correctly |
-| **Static Assets** | ⚠️ Some assets might fail | ✅ All assets load |
-| **Compression** | Manual | ✅ Automatic |
-| **Web Server Config** | Missing | ✅ web.config included |
+| Step                  | Before                        | After                  |
+| --------------------- | ----------------------------- | ---------------------- |
+| **SPA Routing**       | ❌ 404 errors on page refresh | ✅ Works correctly     |
+| **Static Assets**     | ⚠️ Some assets might fail     | ✅ All assets load     |
+| **Compression**       | Manual                        | ✅ Automatic           |
+| **Web Server Config** | Missing                       | ✅ web.config included |
 
 ## Notes
 

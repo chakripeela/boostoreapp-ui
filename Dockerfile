@@ -1,5 +1,5 @@
 # Build stage
-FROM node:16-alpine AS builder
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
@@ -16,18 +16,27 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:16-alpine
+FROM node:18-alpine
 
 WORKDIR /app
 
-# Install a lightweight http server
-RUN npm install -g serve
+# Install http-server globally
+RUN npm install -g http-server
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package.json ./package.json
+
+# Install only production dependencies
+RUN npm install --only=production
 
 # Expose port
 EXPOSE 3000
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+
 # Start the application
-CMD ["serve", "-s", "dist", "-l", "3000"]
+CMD ["npm", "start"]
+

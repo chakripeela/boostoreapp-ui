@@ -78,9 +78,17 @@ The repository includes automatic deployment to Azure App Service on every push 
 
 Add the following secrets to your GitHub repository (Settings → Secrets and variables → Actions):
 
+**Azure Credentials:**
 - `AZURE_CREDENTIALS` - Azure service principal credentials (JSON format)
-- `APPSERVICE_NAME` - Your App Service name (e.g., `bookstore-app-prod`)
-- `AZURE_RESOURCE_GROUP` - Your Azure resource group name
+
+**Azure Container Registry (ACR):**
+- `ACR_LOGIN_SERVER` - Container registry URL (e.g., `myregistry.azurecr.io`)
+- `ACR_USERNAME` - Registry username
+- `ACR_PASSWORD` - Registry password
+
+**App Service:**
+- `APPSERVICE_NAME` - App Service name (e.g., `bookstore-app-prod`)
+- `AZURE_RESOURCE_GROUP` - Azure resource group name
 
 **Create Azure service principal:**
 
@@ -100,46 +108,60 @@ The output should be added as `AZURE_CREDENTIALS` secret in JSON format:
 }
 ```
 
-#### Workflow Behavior
+**Get ACR credentials:**
 
-- **Trigger**: Automatically runs on push to `main` branch
-- **Steps**:
-  1. Checks out code
-  2. Sets up Node.js
-  3. Installs dependencies
-  4. Builds React app
-  5. Logs into Azure
-  6. Deploys `dist/` folder to App Service
-  7. Displays deployment confirmation
+```bash
+# Get login server
+az acr show --name <registry-name> --query loginServer -o tsv
 
-The application will be accessible at:
-
-```
-https://{APPSERVICE_NAME}.azurewebsites.net
+# Get credentials
+az acr credential show --name <registry-name>
 ```
 
-#### Setup App Service
+#### Required Azure Resources
+
+**4. Create Docker-enabled App Service:**
 
 ```bash
 # Create resource group
 az group create --name myResourceGroup --location eastus
 
-# Create App Service Plan (Linux)
+# Create App Service Plan (Linux for containers)
 az appservice plan create \
   --name bookstore-plan \
   --resource-group myResourceGroup \
   --sku B1 \
   --is-linux
 
-# Create Web App
+# Create Web App with Docker
 az webapp create \
   --resource-group myResourceGroup \
   --plan bookstore-plan \
   --name bookstore-app-prod \
-  --runtime "node|18-lts"
+  --deployment-container-image-name myregistry.azurecr.io/bookstore-app:latest
 ```
 
-For detailed setup instructions, see [APP_SERVICE_SETUP.md](./APP_SERVICE_SETUP.md)
+#### Workflow Steps
+
+The GitHub Actions workflow performs the following:
+
+1. **Build Docker Image**: Creates a Docker container with Node.js runtime
+2. **Push to ACR**: Uploads image to Azure Container Registry
+3. **Deploy Container**: Updates App Service to run the new container image
+4. **Verify Deployment**: Waits and confirms successful startup
+5. **Health Check**: Validates the application is accessible
+
+#### Running the Workflow
+
+Trigger workflow manually:
+
+1. Go to GitHub repository → **Actions** tab
+2. Select **Build and Deploy to Azure App Service**
+3. Click **Run workflow** button
+4. Monitor progress in the workflow run
+5. Access your app at `https://{APPSERVICE_NAME}.azurewebsites.net`
+
+The container runs a Node.js HTTP server that serves the React application with proper SPA routing support.
 
 For detailed setup instructions, see [APP_SERVICE_SETUP.md](./APP_SERVICE_SETUP.md)
 
@@ -186,7 +208,12 @@ The application uses:
 
 ## Technologies
 
-- React 18
-- Vite 5
+- React 18.2.0
+- Vite 4.4.0 (build tool)
+- Node.js 18 LTS (runtime)
+- Docker (containerization)
+- Azure App Service (hosting)
+- GitHub Actions (CI/CD)
+- Azure Container Registry (image storage)
 - CSS3
 - Vanilla JavaScript (ES6+)

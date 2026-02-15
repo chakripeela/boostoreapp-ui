@@ -160,8 +160,9 @@ az appservice plan update \
 ```
 
 Available SKUs:
+
 - **F1** (Free) - Development only
-- **D1** (Shared) - Minimal production  
+- **D1** (Shared) - Minimal production
 - **B1** (Basic) - Small apps (~$10-15/month)
 - **B2** (Basic) - Medium apps
 - **S1** (Standard) - Standard production (~$50/month)
@@ -236,6 +237,7 @@ az webapp config appsettings set \
 ## Monitoring
 
 ### Enable Application Insights
+
 ```bash
 az webapp config appsettings set \
   --resource-group myResourceGroup \
@@ -244,6 +246,7 @@ az webapp config appsettings set \
 ```
 
 ### View Metrics
+
 ```bash
 az monitor metrics list-definitions \
   --resource /subscriptions/{sub-id}/resourceGroups/{rg}/providers/Microsoft.Web/sites/bookstore-app-prod
@@ -251,19 +254,20 @@ az monitor metrics list-definitions \
 
 ## Cost Estimation
 
-| Tier | Monthly Cost | Use Case |
-|------|-------------|----------|
-| **F1** (Free) | $0 | Development only |
-| **B1** (Basic) | ~$10-15 | Small production app |
-| **S1** (Standard) | ~$50 | Medium production app |
-| **S2** (Standard) | ~$100 | High-traffic app |
-| **P1** (Premium) | ~$280+ | Enterprise apps |
+| Tier              | Monthly Cost | Use Case              |
+| ----------------- | ------------ | --------------------- |
+| **F1** (Free)     | $0           | Development only      |
+| **B1** (Basic)    | ~$10-15      | Small production app  |
+| **S1** (Standard) | ~$50         | Medium production app |
+| **S2** (Standard) | ~$100        | High-traffic app      |
+| **P1** (Premium)  | ~$280+       | Enterprise apps       |
 
 **Current setup cost:** B1 plan (~$10-15/month)
 
 ## Deployments
 
 View all deployments:
+
 ```bash
 az webapp deployment list \
   --name bookstore-app-prod \

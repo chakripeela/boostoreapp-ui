@@ -46,7 +46,21 @@ jobs:
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
 
       - name: Wait for App Service to start
-        run: sleep 30
+        run: sleep 45
+
+      - name: Check App Service status
+        run: |
+          az webapp show \
+            --name ${{ env.APPSERVICE_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
+
+      - name: Stream App Service logs
+        run: |
+          echo "Streaming logs from App Service (last 50 lines)..."
+          az webapp log tail \
+            --name ${{ env.APPSERVICE_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --max-lines 50 || true
 
       - name: Verify Deployment
         run: |
@@ -54,8 +68,9 @@ jobs:
           echo "App Service: ${{ env.APPSERVICE_NAME }}"
           echo "URL: https://${{ env.APPSERVICE_NAME }}.azurewebsites.net"
           echo "=========================="
-          echo "If blank page appears:"
-          echo "1. Wait 1-2 minutes for App Service to fully start"
-          echo "2. Hard refresh browser (Ctrl+Shift+Delete)"
-          echo "3. Check logs: az webapp log stream --name ${{ env.APPSERVICE_NAME }} --resource-group ${{ env.AZURE_RESOURCE_GROUP }}"
+          echo "Container is running on port 80"
+          echo "If you see a 503 error:"
+          echo "1. Check logs: az webapp log stream --name ${{ env.APPSERVICE_NAME }} --resource-group ${{ env.AZURE_RESOURCE_GROUP }}"
+          echo "2. Wait 2-3 minutes for container to fully initialize"
+          echo "3. Hard refresh browser (Ctrl+Shift+R)"
           echo "=========================="

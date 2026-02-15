@@ -26,13 +26,13 @@ RUN npm install -g http-server
 # Copy only the built dist folder from builder
 COPY --from=builder /app/dist ./dist
 
-# Expose port 3000
-EXPOSE 3000
+# Expose port 80 (required for Azure App Service)
+EXPOSE 80
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost:3000/ || exit 1
+  CMD wget --quiet --tries=1 --spider http://localhost:80/ || exit 1
 
-# Start http-server to serve the React SPA
-CMD ["http-server", "dist", "-p", "3000", "-c-1"]
+# Start http-server on port 80 (App Service expects this)
+CMD ["http-server", "dist", "-p", "80", "-c-1"]
 

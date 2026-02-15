@@ -2,7 +2,7 @@ name: Deploy to Azure App Service
 
 on:
   workflow_dispatch:
-    description: 'Manual deployment to Azure App Service'
+    description: "Manual deployment to Azure App Service"
 
 env:
   APPSERVICE_NAME: ${{ secrets.APPSERVICE_NAME }}
@@ -26,6 +26,9 @@ jobs:
 
       - name: Build React app
         run: npm run build
+
+      - name: Verify build output
+        run: ls -la dist/
 
       - name: Azure Login
         uses: azure/login@v1

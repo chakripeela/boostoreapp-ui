@@ -28,7 +28,14 @@ jobs:
         run: npm run build
 
       - name: Verify build output
-        run: ls -la dist/
+        run: ls -la dist/ && ls -la dist/web.config
+
+      - name: Create deployment package
+        run: |
+          cd dist
+          zip -r -q ../deploy.zip .
+          cd ..
+          ls -lh deploy.zip
 
       - name: Azure Login
         uses: azure/login@v1
@@ -39,10 +46,19 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.APPSERVICE_NAME }}
-          package: ./dist
+          package: ./deploy.zip
+          clean: true
+
+      - name: Restart App Service
+        run: |
+          az webapp restart \
+            --name ${{ env.APPSERVICE_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
 
       - name: Verify Deployment
         run: |
           echo "✅ Application deployed successfully to App Service!"
           echo "App Service: ${{ env.APPSERVICE_NAME }}"
+          echo "URL: https://${{ env.APPSERVICE_NAME }}.azurewebsites.net"
+          echo "Note: May take 30-60 seconds to fully load"
           echo "URL: https://${{ env.APPSERVICE_NAME }}.azurewebsites.net"

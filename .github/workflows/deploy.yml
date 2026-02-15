@@ -31,13 +31,30 @@ jobs:
             --image ${{ env.IMAGE_NAME }}:${{ github.sha }} \
             .
 
+      - name: Verify image in ACR
+        run: |
+          REGISTRY_NAME=$(echo ${{ env.REGISTRY_LOGIN_SERVER }} | cut -d. -f1)
+          echo "Checking images in ACR registry: $REGISTRY_NAME"
+          az acr repository list --name $REGISTRY_NAME || true
+          
+          echo ""
+          echo "Recent tags for ${{ env.IMAGE_NAME }}:"
+          az acr repository show-tags --name $REGISTRY_NAME --repository ${{ env.IMAGE_NAME }} || echo "Image not found"
+
       - name: Deploy to App Service
         run: |
+          # Set container image with ACR credentials
           az webapp config container set \
             --name ${{ env.APPSERVICE_NAME }} \
             --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
             --docker-custom-image-name ${{ env.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
             --docker-registry-server-url https://${{ env.REGISTRY_LOGIN_SERVER }}
+          
+          # Display current container config
+          echo "Current container configuration:"
+          az webapp config container show \
+            --name ${{ env.APPSERVICE_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} || true
 
       - name: Restart App Service
         run: |
@@ -50,9 +67,17 @@ jobs:
 
       - name: Check App Service status
         run: |
+          echo "App Service details:"
           az webapp show \
             --name ${{ env.APPSERVICE_NAME }} \
-            --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --query "{name:name, state:state, runtimeVersion:runtimeVersion}"
+          
+          echo ""
+          echo "Container configuration:"
+          az webapp config container show \
+            --name ${{ env.APPSERVICE_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} || echo "No container config found"
 
       - name: Stream App Service logs
         run: |

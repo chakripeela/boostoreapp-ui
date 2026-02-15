@@ -66,50 +66,19 @@ Create a production build:
 npm run build
 ```
 
-## Docker & Deployment
+Output will be in the `dist/` folder, ready for deployment.
 
-### Docker Setup
+## Deployment to Azure App Service
 
-Build and run the application in Docker:
+### GitHub Actions CI/CD
 
-```bash
-# Build the image
-docker build -t bookstore-app .
-
-# Run the container
-docker run -p 3000:3000 bookstore-app
-
-# Or use docker-compose
-docker-compose up -d
-```
-
-The application will be accessible at `http://localhost:3000`
-
-### GitHub Actions Deployment
-
-The repository includes CI/CD workflows to automatically build and deploy to Azure:
+The repository includes automatic deployment to Azure App Service on every push to the main branch.
 
 #### Required GitHub Secrets
 
 Add the following secrets to your GitHub repository (Settings → Secrets and variables → Actions):
 
-##### For ACR Deployment
-
-- `ACR_LOGIN_SERVER` - Your Azure Container Registry URL (e.g., `myregistry.azurecr.io`)
-- `ACR_USERNAME` - ACR username
-- `ACR_PASSWORD` - ACR password
-
-**Get ACR credentials:**
-
-```bash
-az acr credential show --name <your-registry-name>
-az acr show --name <your-registry-name> --query loginServer -o tsv
-```
-
-##### For App Service Deployment
-
 - `AZURE_CREDENTIALS` - Azure service principal credentials (JSON format)
-- `AZURE_SUBSCRIPTION_ID` - Your Azure subscription ID
 - `APPSERVICE_NAME` - Your App Service name (e.g., `bookstore-app-prod`)
 - `AZURE_RESOURCE_GROUP` - Your Azure resource group name
 
@@ -131,32 +100,46 @@ The output should be added as `AZURE_CREDENTIALS` secret in JSON format:
 }
 ```
 
-**Get subscription ID:**
-
-```bash
-az account show --query id -o tsv
-```
-
 #### Workflow Behavior
 
 - **Trigger**: Automatically runs on push to `main` branch
 - **Steps**:
-  1. Builds Docker image
-  2. Pushes to Azure Container Registry
-  3. Deploys container to App Service from ACR
-  4. Verifies deployment completion
-  5. Application accessible at `https://<appservice-name>.azurewebsites.net`
+  1. Checks out code
+  2. Sets up Node.js
+  3. Installs dependencies
+  4. Builds React app
+  5. Logs into Azure
+  6. Deploys `dist/` folder to App Service
+  7. Displays deployment confirmation
 
-#### App Service Configuration
+The application will be accessible at:
 
-No additional Kubernetes manifests needed. App Service handles:
+```
+https://{APPSERVICE_NAME}.azurewebsites.net
+```
 
-- Container orchestration
-- Auto-restart on failure
-- Scaling (vertical and horizontal)
-- Built-in monitoring and logging
-- Custom domain support
-- SSL/TLS certificates
+#### Setup App Service
+
+```bash
+# Create resource group
+az group create --name myResourceGroup --location eastus
+
+# Create App Service Plan (Linux)
+az appservice plan create \
+  --name bookstore-plan \
+  --resource-group myResourceGroup \
+  --sku B1 \
+  --is-linux
+
+# Create Web App
+az webapp create \
+  --resource-group myResourceGroup \
+  --plan bookstore-plan \
+  --name bookstore-app-prod \
+  --runtime "node|18-lts"
+```
+
+For detailed setup instructions, see [APP_SERVICE_SETUP.md](./APP_SERVICE_SETUP.md)
 
 For detailed setup instructions, see [APP_SERVICE_SETUP.md](./APP_SERVICE_SETUP.md)
 

@@ -76,28 +76,34 @@ The repository includes automatic deployment to Azure App Service on every push 
 
 #### Required GitHub Secrets
 
-Add the following secrets to your GitHub repository (Settings → Secrets and variables → Actions):
+Add the following 4 secrets to your GitHub repository (Settings → Secrets and variables → Actions):
 
-**Azure Credentials:**
 - `AZURE_CREDENTIALS` - Azure service principal credentials (JSON format)
-
-**Azure Container Registry (ACR):**
 - `ACR_LOGIN_SERVER` - Container registry URL (e.g., `myregistry.azurecr.io`)
-- `ACR_USERNAME` - Registry username
-- `ACR_PASSWORD` - Registry password
-
-**App Service:**
 - `APPSERVICE_NAME` - App Service name (e.g., `bookstore-app-prod`)
 - `AZURE_RESOURCE_GROUP` - Azure resource group name
 
-**Create Azure service principal:**
+**Create Azure service principal with required roles:**
 
 ```bash
+# Create service principal
 az ad sp create-for-rbac --name bookstore-app-sp --role Contributor \
   --scopes /subscriptions/{subscription-id}/resourceGroups/{resource-group}
+
+# Add AcrPush role for building images
+az role assignment create \
+  --assignee <client-id> \
+  --role AcrPush \
+  --scope /subscriptions/{subscription-id}/resourceGroups/{resource-group}
+
+# Add AcrPull role for pulling images  
+az role assignment create \
+  --assignee <client-id> \
+  --role AcrPull \
+  --scope /subscriptions/{subscription-id}/resourceGroups/{resource-group}
 ```
 
-The output should be added as `AZURE_CREDENTIALS` secret in JSON format:
+The service principal output should be added as `AZURE_CREDENTIALS` secret:
 
 ```json
 {
@@ -108,14 +114,10 @@ The output should be added as `AZURE_CREDENTIALS` secret in JSON format:
 }
 ```
 
-**Get ACR credentials:**
+**Get ACR login server:**
 
 ```bash
-# Get login server
 az acr show --name <registry-name> --query loginServer -o tsv
-
-# Get credentials
-az acr credential show --name <registry-name>
 ```
 
 #### Required Azure Resources
@@ -145,11 +147,12 @@ az webapp create \
 
 The GitHub Actions workflow performs the following:
 
-1. **Build Docker Image**: Creates a Docker container with Node.js runtime
-2. **Push to ACR**: Uploads image to Azure Container Registry
-3. **Deploy Container**: Updates App Service to run the new container image
-4. **Verify Deployment**: Waits and confirms successful startup
-5. **Health Check**: Validates the application is accessible
+1. **Azure Login**: Authenticates using the service principal
+2. **Build Docker Image**: Uses `az acr build` to build the container in ACR
+3. **Push to ACR**: Image is stored with latest and commit SHA tags
+4. **Deploy Container**: Configures App Service with the new container image
+5. **Restart Service**: Restarts App Service to pull and run the image
+6. **Verify Deployment**: Displays success message and troubleshooting tips
 
 #### Running the Workflow
 
@@ -158,10 +161,10 @@ Trigger workflow manually:
 1. Go to GitHub repository → **Actions** tab
 2. Select **Build and Deploy to Azure App Service**
 3. Click **Run workflow** button
-4. Monitor progress in the workflow run
-5. Access your app at `https://{APPSERVICE_NAME}.azurewebsites.net`
+4. Monitor progress (usually 5-10 minutes)
+5. Visit your app at `https://{APPSERVICE_NAME}.azurewebsites.net`
 
-The container runs a Node.js HTTP server that serves the React application with proper SPA routing support.
+The workflow uses Azure CLI commands (`az acr build`, `az webapp config container set`) which authenticate automatically with the service principal.
 
 For detailed setup instructions, see [APP_SERVICE_SETUP.md](./APP_SERVICE_SETUP.md)
 
